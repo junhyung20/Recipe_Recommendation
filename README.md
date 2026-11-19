@@ -1,12 +1,13 @@
 # 레시피 추천 시스템
 
 Food.com 레시피의 이름과 재료, 사용자 평점 이력으로 개인화된 Top-10을 추천합니다.
-현재는 콘텐츠 기반 필터링 구현을 포함하며, 팀원의 모델은 추후 같은 저장소에 통합할 예정입니다.
+데이터 전처리, 콘텐츠 기반 필터링, SVD 기반 협업 필터링 구현을 포함합니다.
 
 ## 파일
 
 | 파일 | 역할 |
 |---|---|
+| 전처리_소스코드.ipynb | 원본 데이터 확인, 중복 제거, Train·Validation·Test 분할 및 레시피 특징 생성 |
 | content_based_filtering.py | TF-IDF 모델, 설정 비교, 사용자별 평가 및 추천 |
 | requirements.txt | 실험에 사용한 Python 라이브러리 버전 |
 | .gitignore | 데이터, 실행 중간 파일 및 작업 자료 제외 |
@@ -17,6 +18,33 @@ Food.com 레시피의 이름과 재료, 사용자 평점 이력으로 개인화�
 
 재료 40%와 이름 60%의 TF-IDF 특징을 결합합니다. 레시피 텍스트에 SVD 32차원을 학습한 뒤 첫 8개 공통 성분을 완전히 감쇠하고, 보정된 특징 공간에서 cosine 유사도를 계산합니다.
 사용자 프로필은 Train에서 평점 4점 이상을 준 레시피의 동일 가중 평균으로 구성합니다. SVD의 학습 대상은 사용자 평점 행렬이 아닌 레시피 텍스트입니다.
+
+## 데이터 전처리
+
+담당: Minkyung Park
+
+원본 CSV 4개를 준비합니다.
+- RAW_recipes.csv
+- RAW_interactions.csv
+- recipes.csv
+- reviews.csv
+
+전처리_소스코드.ipynb에서 `data_path`를 원본 CSV가 있는 폴더로 설정하고 모든 셀을 순서대로 실행합니다. Colab에서 Google Drive를 사용하는 경우 먼저 Drive를 마운트합니다.
+
+평점 0을 제외하고, 두 원본 데이터셋에서 겹치는 사용자–레시피 쌍을 Test 후보에서 제거합니다. 재료·태그 텍스트를 정리하고 Validation을 분리한 뒤, 분할 간 중복과 사용자·레시피 ID 연결을 검사합니다.
+
+결과는 `data_path/final_split/`에 저장됩니다.
+
+| 생성 파일 | 데이터 수 |
+|---|---:|
+| train_ratings.csv | 987,860 |
+| validation_ratings.csv | 83,660 |
+| test_ratings.csv | 4,301 |
+| recipe_features.csv | 226,590 |
+
+`minutes`는 추후 활용을 위해 보존했으며 모델 학습·평가에는 사용하지 않았습니다.
+
+콘텐츠 기반 모델을 실행할 때는 생성된 CSV 4개를 아래에서 안내하는 `전처리_완료/` 폴더에 복사하거나, `--data-dir`에 생성된 `final_split` 폴더 경로를 지정합니다.
 
 ## 실행
 
@@ -77,4 +105,4 @@ Colab에서는 코드와 CSV를 /content에 올리고 실행합니다.
 - [scikit-learn TfidfVectorizer](https://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.TfidfVectorizer.html)
 - [scikit-learn TruncatedSVD](https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.TruncatedSVD.html)
 
-팀이 제공한 Train·Validation·Test 분할을 사용하며, 원본 Kaggle 파일만으로 동일 분할을 만드는 전처리 코드는 현재 포함되어 있지 않습니다. 라이브러리의 역할과 주요 연산은 Python 코드의 한국어 주석에 설명했습니다.
+원본 Kaggle 파일에서 Train·Validation·Test 분할과 레시피 특징 파일을 생성하는 전처리 노트북을 포함합니다. 전처리 코드에는 영어 주석이 있으며, 사용한 라이브러리·함수·주요 매개변수 설명과 실행 결과는 별도 전처리 보고서에 정리했습니다.
